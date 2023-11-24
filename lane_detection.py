@@ -6,12 +6,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def grey(image):
-    # convert to grayscale
+def gray(image):
     return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
-    # Apply Gaussian Blur --> Reduce noise and smoothen image
-    
+def yellow_mask(image):
+    img_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+    yellow_lower = np.array([90, 140, 140])
+    yellow_upper = np.array([110, 255, 255])
+    mask_yellow = cv2.inRange(img_hsv, yellow_lower, yellow_upper)
+
+    return mask_yellow
+
+
+def white_mask(image):
+    img_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
+    white_lower = np.array([0, 0, 150])
+    white_upper = np.array([200, 150, 200])
+    mask_white = cv2.inRange(img_hsv, white_lower, white_upper)
+
+    return mask_white
+
 
 def gauss(image):
     return cv2.GaussianBlur(image, (5, 5), 0)
@@ -116,18 +132,34 @@ def main():
             break
 
         # detection
-        img_gray = grey(frame)
-        blur = gauss(img_gray)
-        edges = canny(blur)
-        seg = region(edges)
+        # img_gray = gray(frame)
+        # blur = gauss(img_gray)
+        # edges = canny(blur)
+        # seg = region(edges)
         
         # DRAWING LINES: (order of params) --> region of interest, bin size (P, theta), min intersections needed, placeholder array,
+        # lines = cv2.HoughLinesP(seg, 2, np.pi/180, 30,
+        #                         np.array([]), minLineLength=20, maxLineGap=5)
+        # averaged_lines = average(frame, lines)
+        # black_lines = display_lines(frame, averaged_lines)
+        # # taking wighted sum of original image and lane lines image
+        # lanes = cv2.addWeighted(frame, 0.8, black_lines, 1, 1)
+
+
+        white = white_mask(frame)
+        yellow = yellow_mask(frame)
+        mask = cv2.bitwise_or(white, yellow)
+        blur = gauss(mask)
+        edges = canny(blur)
+        seg = region(edges)
+
         lines = cv2.HoughLinesP(seg, 2, np.pi/180, 30,
-                                np.array([]), minLineLength=20, maxLineGap=5)
+                        np.array([]), minLineLength=20, maxLineGap=5)
         averaged_lines = average(frame, lines)
         black_lines = display_lines(frame, averaged_lines)
         # taking wighted sum of original image and lane lines image
         lanes = cv2.addWeighted(frame, 0.8, black_lines, 1, 1)
+
         cv2.imshow("result", lanes)
         # out.write(lanes)
 
