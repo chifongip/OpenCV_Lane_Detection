@@ -100,7 +100,7 @@ def make_points(image, average):
 
 
 def main():
-    cap = cv2.VideoCapture("test_video.mp4")
+    cap = cv2.VideoCapture("solidWhiteRight.mp4")
 
     frame_width = int(cap.get(3)) 
     frame_height = int(cap.get(4)) 
